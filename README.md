@@ -17,23 +17,23 @@ but PowerMateEventHandler seems as if it could have purpose beyond hue lights, s
 off.
 
 # Basic Usage
-\>\>\> import PowerMateEventHandler as pmeh
-\>\>\> p = pmeh.PowerMateEventHandler()
-\>\>\> p.set_led_brightness(0)
-\>\>\> while True:
-...     next = p.get_next(block=False, timeout=1)
-...     if next != None:
-...         print nextConsolidatedEventCode.LEFT_TURN
-...`
-ConsolidatedEventCode.SINGLE_CLICK
-ConsolidatedEventCode.RIGHT_TURN
-ConsolidatedEventCode.RIGHT_TURN
-ConsolidatedEventCode.RIGHT_TURN
-ConsolidatedEventCode.DOUBLE_CLICK
-ConsolidatedEventCode.LEFT_TURN
-ConsolidatedEventCode.LEFT_TURN
-ConsolidatedEventCode.LEFT_TURN
-ConsolidatedEventCode.LONG_CLICK
+\>\>\> import PowerMateEventHandler as pmeh\
+\>\>\> p = pmeh.PowerMateEventHandler()\
+\>\>\> p.set_led_brightness(0)\
+\>\>\> while True:\
+...     next = p.get_next(block=False, timeout=1)\
+...     if next != None:\
+...         print nextConsolidatedEventCode.LEFT_TURN\
+...`\
+ConsolidatedEventCode.SINGLE_CLICK\
+ConsolidatedEventCode.RIGHT_TURN\
+ConsolidatedEventCode.RIGHT_TURN\
+ConsolidatedEventCode.RIGHT_TURN\
+ConsolidatedEventCode.DOUBLE_CLICK\
+ConsolidatedEventCode.LEFT_TURN\
+ConsolidatedEventCode.LEFT_TURN\
+ConsolidatedEventCode.LEFT_TURN\
+ConsolidatedEventCode.LONG_CLICK\
 
 
 # Questions, Comments, Concerns
