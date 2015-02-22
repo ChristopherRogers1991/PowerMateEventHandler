@@ -5,7 +5,7 @@ PowerMateEventHandler
 
 PowerMateEventHandler is used to find and read and write to and from a Griffin Power Mate knob.
 It allows for collecting raw evdev events, as well as 'ConsolodatedEvents.' Consolodated events
-take sets of raw evetns, and convert them into a single event such as a SINGLE_CLICK, DOUBLE_CLICK,
+take sets of raw evdev events, and convert them into a single event such as a SINGLE_CLICK, DOUBLE_CLICK,
 or LONG_CLICK.
 
 One goal of the project was to provide lots of options, but have sensible default values. Each function
