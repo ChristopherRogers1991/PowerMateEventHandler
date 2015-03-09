@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>PowerMateEventHandler</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Module&nbsp;PowerMateEventHandler
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="PowerMateEventHandler-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="PowerMateEventHandler-module.html">Module PowerMateEventHandler</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># requires python-evdev, python-requests</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">__future__</tt> <tt class="py-keyword">import</tt> <tt class="py-name">print_function</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">evdev</tt> <tt class="py-keyword">import</tt> <tt class="py-name">InputDevice</tt><tt class="py-op">,</tt> <tt class="py-name">ecodes</tt><tt class="py-op">,</tt> <tt class="py-name">UInput</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">select</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">enum</tt> <tt class="py-keyword">import</tt> <tt class="py-name">Enum</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">Queue</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">time</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">threading</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># Constants</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable PowerMateEventHandler.BUTTON_PUSHED=PowerMateEventHandler-module.html#BUTTON_PUSHED"><a title="PowerMateEventHandler.BUTTON_PUSHED" class="py-name" href="#" onclick="return doclink('link-0', 'BUTTON_PUSHED', 'link-0');">BUTTON_PUSHED</a></tt> <tt class="py-op">=</tt> <tt class="py-number">256</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt id="link-1" class="py-name" targets="Variable PowerMateEventHandler.KNOB_TURNED=PowerMateEventHandler-module.html#KNOB_TURNED"><a title="PowerMateEventHandler.KNOB_TURNED" class="py-name" href="#" onclick="return doclink('link-1', 'KNOB_TURNED', 'link-1');">KNOB_TURNED</a></tt> <tt class="py-op">=</tt> <tt class="py-number">7</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt id="link-2" class="py-name" targets="Variable PowerMateEventHandler.POSITIVE=PowerMateEventHandler-module.html#POSITIVE"><a title="PowerMateEventHandler.POSITIVE" class="py-name" href="#" onclick="return doclink('link-2', 'POSITIVE', 'link-2');">POSITIVE</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> <tt class="py-comment"># button down, or knob clockwise</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable PowerMateEventHandler.NEGATIVE=PowerMateEventHandler-module.html#NEGATIVE"><a title="PowerMateEventHandler.NEGATIVE" class="py-name" href="#" onclick="return doclink('link-3', 'NEGATIVE', 'link-3');">NEGATIVE</a></tt> <tt class="py-op">=</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt> <tt class="py-comment"># button up, or knob counter-clockwise</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"># TODO make these instance variables, and make accessors and mutators</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt id="link-4" class="py-name" targets="Variable PowerMateEventHandler.time_down=PowerMateEventHandler-module.html#time_down"><a title="PowerMateEventHandler.time_down" class="py-name" href="#" onclick="return doclink('link-4', 'time_down', 'link-4');">time_down</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> <tt class="py-comment"># time at which the button was last pressed down</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt id="link-5" class="py-name" targets="Variable PowerMateEventHandler.led_brightness=PowerMateEventHandler-module.html#led_brightness"><a title="PowerMateEventHandler.led_brightness" class="py-name" href="#" onclick="return doclink('link-5', 'led_brightness', 'link-5');">led_brightness</a></tt> <tt class="py-op">=</tt> <tt class="py-number">100</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt id="link-6" class="py-name" targets="Variable PowerMateEventHandler.flash_duration=PowerMateEventHandler-module.html#flash_duration"><a title="PowerMateEventHandler.flash_duration" class="py-name" href="#" onclick="return doclink('link-6', 'flash_duration', 'link-6');">flash_duration</a></tt> <tt class="py-op">=</tt> <tt class="py-number">.15</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"> </tt>
+<a name="ConsolidatedEventCode"></a><div id="ConsolidatedEventCode-def"><a name="L26"></a><tt class="py-lineno"> 26</tt> <a class="py-toggle" href="#" id="ConsolidatedEventCode-toggle" onclick="return toggle('ConsolidatedEventCode');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="PowerMateEventHandler.ConsolidatedEventCode-class.html">ConsolidatedEventCode</a><tt class="py-op">(</tt><tt class="py-base-class">Enum</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ConsolidatedEventCode-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ConsolidatedEventCode-expanded"><a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">    SINGLE_CLICK = 0</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">    DOUBLE_CLICK = SINGLE_CLICK + 1</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-docstring">    LONG_CLICK = DOUBLE_CLICK + 1</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-docstring">    RIGHT_TURN = LONG_CLICK + 1</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring">    LEFT_TURN = RIGHT_TURN + 1</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable PowerMateEventHandler.ConsolidatedEventCode.SINGLE_CLICK=PowerMateEventHandler.ConsolidatedEventCode-class.html#SINGLE_CLICK"><a title="PowerMateEventHandler.ConsolidatedEventCode.SINGLE_CLICK" class="py-name" href="#" onclick="return doclink('link-7', 'SINGLE_CLICK', 'link-7');">SINGLE_CLICK</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt id="link-8" class="py-name" targets="Variable PowerMateEventHandler.ConsolidatedEventCode.DOUBLE_CLICK=PowerMateEventHandler.ConsolidatedEventCode-class.html#DOUBLE_CLICK"><a title="PowerMateEventHandler.ConsolidatedEventCode.DOUBLE_CLICK" class="py-name" href="#" onclick="return doclink('link-8', 'DOUBLE_CLICK', 'link-8');">DOUBLE_CLICK</a></tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.SINGLE_CLICK" class="py-name" href="#" onclick="return doclink('link-9', 'SINGLE_CLICK', 'link-7');">SINGLE_CLICK</a></tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">    <tt id="link-10" class="py-name" targets="Variable PowerMateEventHandler.ConsolidatedEventCode.LONG_CLICK=PowerMateEventHandler.ConsolidatedEventCode-class.html#LONG_CLICK"><a title="PowerMateEventHandler.ConsolidatedEventCode.LONG_CLICK" class="py-name" href="#" onclick="return doclink('link-10', 'LONG_CLICK', 'link-10');">LONG_CLICK</a></tt> <tt class="py-op">=</tt> <tt id="link-11" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.DOUBLE_CLICK" class="py-name" href="#" onclick="return doclink('link-11', 'DOUBLE_CLICK', 'link-8');">DOUBLE_CLICK</a></tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">    <tt id="link-12" class="py-name" targets="Variable PowerMateEventHandler.ConsolidatedEventCode.RIGHT_TURN=PowerMateEventHandler.ConsolidatedEventCode-class.html#RIGHT_TURN"><a title="PowerMateEventHandler.ConsolidatedEventCode.RIGHT_TURN" class="py-name" href="#" onclick="return doclink('link-12', 'RIGHT_TURN', 'link-12');">RIGHT_TURN</a></tt> <tt class="py-op">=</tt> <tt id="link-13" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.LONG_CLICK" class="py-name" href="#" onclick="return doclink('link-13', 'LONG_CLICK', 'link-10');">LONG_CLICK</a></tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable PowerMateEventHandler.ConsolidatedEventCode.LEFT_TURN=PowerMateEventHandler.ConsolidatedEventCode-class.html#LEFT_TURN"><a title="PowerMateEventHandler.ConsolidatedEventCode.LEFT_TURN" class="py-name" href="#" onclick="return doclink('link-14', 'LEFT_TURN', 'link-14');">LEFT_TURN</a></tt> <tt class="py-op">=</tt> <tt id="link-15" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.RIGHT_TURN" class="py-name" href="#" onclick="return doclink('link-15', 'RIGHT_TURN', 'link-12');">RIGHT_TURN</a></tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler"></a><div id="PowerMateEventHandler-def"><a name="L41"></a><tt class="py-lineno"> 41</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler-toggle" onclick="return toggle('PowerMateEventHandler');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html">PowerMateEventHandler</a><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="PowerMateEventHandler-expanded"><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.__init__"></a><div id="PowerMateEventHandler.__init__-def"><a name="L43"></a><tt class="py-lineno"> 43</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.__init__-toggle" onclick="return toggle('PowerMateEventHandler.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">brightness</tt><tt class="py-op">=</tt><tt class="py-number">255</tt><tt class="py-op">,</tt> <tt class="py-param">read_delay</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">turn_delay</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-param">long_press_time</tt><tt class="py-op">=</tt><tt class="py-number">.5</tt><tt class="py-op">,</tt> <tt class="py-param">double_click_time</tt><tt class="py-op">=</tt><tt class="py-number">.3</tt><tt class="py-op">,</tt> <tt class="py-param">dev_dir</tt><tt class="py-op">=</tt><tt class="py-string">'/dev/input/'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.__init__-expanded"><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">        Find the PowerMateDevice, and get set up to</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">        start reading from it and writing to it.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">        If the device is not found (can happen if the device is not plugged in, or the user does not have permissions to it) a</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">        DeviceNotFound Exception will be raised.</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">        @param brightness: The inital brightness of the led in the base.</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">        @type  brightness: int</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">        @param read_delay: Timeout when waiting for the device to be readable.</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">            Having a time out allows the threads to be joinable without waiting</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">            for another event. None (default) means to wait indefinitely for the device</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">            to be readable. This will probably yield the best performance, but means the</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">            thread will not stop after a call to stop() until a new event is triggered.</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">            Having this configurable  was intendted to allow the reading of events to</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">            be stoppable (i.e to keep from blocking the thread indefinitely). It was</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">            made tunable to allow good performance on fast CPUs, but not hog resources</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">            on slower machines.</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">            Setting delay to None will cause the thread to block indefinitely.</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        @type  read_delay: double</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">        @param turn_delay: Time in ms between consolidated turns.</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">        @type  turn_delay: double</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-docstring">        @param long_press_time: time (in s) the button must be held to register a long press</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-docstring">        @type  long_press_time: double</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-docstring">        @param double_click_time: time (in s) the button must be pressed again after a single press to register as a double</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt class="py-docstring">        @type  double_click_time: double</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring">        @param dev_dir: The directory in which to look for the device.</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring">        @type  dev_dir: str</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-name">dev</tt> <tt class="py-op">=</tt> <tt id="link-16" class="py-name" targets="Function PowerMateEventHandler.find_device()=PowerMateEventHandler-module.html#find_device"><a title="PowerMateEventHandler.find_device" class="py-name" href="#" onclick="return doclink('link-16', 'find_device', 'link-16');">find_device</a></tt><tt class="py-op">(</tt><tt class="py-name">dev_dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">dev</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">Exception</tt><tt class="py-op">(</tt><tt class="py-string">"DeviceNotFound"</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt> <tt class="py-op">=</tt> <tt class="py-name">dev</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt> <tt class="py-op">=</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Queue</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_thread</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt> <tt class="py-op">=</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Queue</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_thread</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__uinput</tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name" targets="Function PowerMateEventHandler.get_uinput()=PowerMateEventHandler-module.html#get_uinput"><a title="PowerMateEventHandler.get_uinput" class="py-name" href="#" onclick="return doclink('link-17', 'get_uinput', 'link-17');">get_uinput</a></tt><tt class="py-op">(</tt><tt class="py-name">dev</tt><tt class="py-op">)</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.set_led_brightness()=PowerMateEventHandler.PowerMateEventHandler-class.html#set_led_brightness"><a title="PowerMateEventHandler.PowerMateEventHandler.set_led_brightness" class="py-name" href="#" onclick="return doclink('link-18', 'set_led_brightness', 'link-18');">set_led_brightness</a></tt><tt class="py-op">(</tt><tt class="py-name">brightness</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__turn_delay</tt> <tt class="py-op">=</tt> <tt class="py-name">turn_delay</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__read_delay</tt> <tt class="py-op">=</tt> <tt class="py-name">read_delay</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__long_press_time</tt> <tt class="py-op">=</tt> <tt class="py-name">long_press_time</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__double_click_time</tt> <tt class="py-op">=</tt> <tt class="py-name">double_click_time</tt> </tt>
+</div><a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.__get_time_in_ms"></a><div id="PowerMateEventHandler.__get_time_in_ms-def"><a name="L107"></a><tt class="py-lineno">107</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.__get_time_in_ms-toggle" onclick="return toggle('PowerMateEventHandler.__get_time_in_ms');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#__get_time_in_ms">__get_time_in_ms</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.__get_time_in_ms-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.__get_time_in_ms-expanded"><a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">        @return: The currnt time in ms</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring">        @rtype:  int</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">round</tt><tt class="py-op">(</tt><tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">time</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-number">1000</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.__raw"></a><div id="PowerMateEventHandler.__raw-def"><a name="L116"></a><tt class="py-lineno">116</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.__raw-toggle" onclick="return toggle('PowerMateEventHandler.__raw');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#__raw">__raw</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.__raw-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.__raw-expanded"><a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-docstring">        Begin raw capture of events, and add them to</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"><tt class="py-docstring">        the raw queue.</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">True</tt><tt class="py-op">:</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt><tt class="py-op">:</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-comment"># Check if the device is readable</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                <tt class="py-name">r</tt><tt class="py-op">,</tt><tt class="py-name">w</tt><tt class="py-op">,</tt><tt class="py-name">x</tt> <tt class="py-op">=</tt> <tt class="py-name">select</tt><tt class="py-op">.</tt><tt class="py-name">select</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__read_delay</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">r</tt><tt class="py-op">:</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                    <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt><tt class="py-op">.</tt><tt class="py-name">read_one</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">event</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt class="py-name">event</tt><tt class="py-op">)</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">IOError</tt><tt class="py-op">:</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">                <tt class="py-comment"># If the device get's disconnected, wait for it to come back</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">                <tt class="py-keyword">while</tt> <tt class="py-name">True</tt><tt class="py-op">:</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">                    <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">sleep</tt><tt class="py-op">(</tt><tt class="py-number">.5</tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt> <tt class="py-op">=</tt> <tt id="link-19" class="py-name"><a title="PowerMateEventHandler.find_device" class="py-name" href="#" onclick="return doclink('link-19', 'find_device', 'link-16');">find_device</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__uinput</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name"><a title="PowerMateEventHandler.get_uinput" class="py-name" href="#" onclick="return doclink('link-20', 'get_uinput', 'link-17');">get_uinput</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dev</tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.set_led_brightness" class="py-name" href="#" onclick="return doclink('link-21', 'set_led_brightness', 'link-18');">set_led_brightness</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__led_brightness</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">                        <tt class="py-keyword">break</tt> </tt>
+</div><a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.__consolidated"></a><div id="PowerMateEventHandler.__consolidated-def"><a name="L146"></a><tt class="py-lineno">146</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.__consolidated-toggle" onclick="return toggle('PowerMateEventHandler.__consolidated');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#__consolidated">__consolidated</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.__consolidated-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.__consolidated-expanded"><a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"><tt class="py-docstring">        Begin consolidating events from the raw queue,</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"><tt class="py-docstring">        and placing them on the consolidated queue</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-name">time_of_last_turn</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">True</tt><tt class="py-op">:</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt><tt class="py-op">:</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">            <tt class="py-comment"># Allows the thread to be joinable (i.e. stoppable) without</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">            <tt class="py-comment"># waiting for another event (without the timeout, get would</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt class="py-comment"># block until the next event)</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">timeout</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__read_delay</tt><tt class="py-op">)</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Empty</tt><tt class="py-op">:</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">code</tt> <tt class="py-op">==</tt> <tt id="link-22" class="py-name"><a title="PowerMateEventHandler.KNOB_TURNED" class="py-name" href="#" onclick="return doclink('link-22', 'KNOB_TURNED', 'link-1');">KNOB_TURNED</a></tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms()=PowerMateEventHandler.PowerMateEventHandler-class.html#__get_time_in_ms"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-23', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__turn_delay</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">time_of_last_turn</tt><tt class="py-op">:</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">value</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt id="link-24" class="py-name" targets="Class PowerMateEventHandler.ConsolidatedEventCode=PowerMateEventHandler.ConsolidatedEventCode-class.html"><a title="PowerMateEventHandler.ConsolidatedEventCode" class="py-name" href="#" onclick="return doclink('link-24', 'ConsolidatedEventCode', 'link-24');">ConsolidatedEventCode</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.RIGHT_TURN" class="py-name" href="#" onclick="return doclink('link-25', 'RIGHT_TURN', 'link-12');">RIGHT_TURN</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt id="link-26" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode" class="py-name" href="#" onclick="return doclink('link-26', 'ConsolidatedEventCode', 'link-24');">ConsolidatedEventCode</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.LEFT_TURN" class="py-name" href="#" onclick="return doclink('link-27', 'LEFT_TURN', 'link-14');">LEFT_TURN</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">                <tt class="py-name">time_of_last_turn</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-28', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">code</tt> <tt class="py-op">==</tt> <tt id="link-29" class="py-name"><a title="PowerMateEventHandler.BUTTON_PUSHED" class="py-name" href="#" onclick="return doclink('link-29', 'BUTTON_PUSHED', 'link-0');">BUTTON_PUSHED</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">value</tt> <tt class="py-op">==</tt> <tt id="link-30" class="py-name"><a title="PowerMateEventHandler.POSITIVE" class="py-name" href="#" onclick="return doclink('link-30', 'POSITIVE', 'link-2');">POSITIVE</a></tt><tt class="py-op">:</tt> <tt class="py-comment"># button pressed</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.__button_press()=PowerMateEventHandler.PowerMateEventHandler-class.html#__button_press"><a title="PowerMateEventHandler.PowerMateEventHandler.__button_press" class="py-name" href="#" onclick="return doclink('link-31', '__button_press', 'link-31');">__button_press</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-32', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.__button_press"></a><div id="PowerMateEventHandler.__button_press-def"><a name="L180"></a><tt class="py-lineno">180</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.__button_press-toggle" onclick="return toggle('PowerMateEventHandler.__button_press');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#__button_press">__button_press</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">time_pressed</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.__button_press-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.__button_press-expanded"><a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"><tt class="py-docstring">        Helper function for __consolidated.</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line"><tt class="py-docstring">        Handle a button press event (i.e. consolidtate raw events into</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"><tt class="py-docstring">        a single, double, or long click event)</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"><tt class="py-docstring">        @param time_pressed: the time the button was first pressed.</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"><tt class="py-docstring">        @type  time_pressed: double</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring">        @todo x.x: remove thie parameter, and uses of get_time_in_ms that are</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">        unnecessary. The time can be gotten directly from the event.</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">        <tt class="py-name">x</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__long_press_time</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt class="py-name">check_time</tt> <tt class="py-op">=</tt> <tt class="py-name">time_pressed</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">            <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">timeout</tt><tt class="py-op">=</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Empty</tt><tt class="py-op">:</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">            <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-name">x</tt> <tt class="py-op">=</tt> <tt class="py-name">x</tt> <tt class="py-op">-</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-33', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">check_time</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-number">1000</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">event</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-op">(</tt><tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">code</tt> <tt class="py-op">!=</tt> <tt id="link-34" class="py-name"><a title="PowerMateEventHandler.BUTTON_PUSHED" class="py-name" href="#" onclick="return doclink('link-34', 'BUTTON_PUSHED', 'link-0');">BUTTON_PUSHED</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt><tt class="py-name">x</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">            <tt class="py-name">check_time</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-35', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">timeout</tt><tt class="py-op">=</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Empty</tt><tt class="py-op">:</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">            <tt class="py-name">x</tt> <tt class="py-op">=</tt> <tt class="py-name">x</tt> <tt class="py-op">-</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.__get_time_in_ms" class="py-name" href="#" onclick="return doclink('link-36', '__get_time_in_ms', 'link-23');">__get_time_in_ms</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">check_time</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-number">1000</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">x</tt> <tt class="py-op">&lt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> <tt class="py-comment"># was long</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt id="link-37" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode" class="py-name" href="#" onclick="return doclink('link-37', 'ConsolidatedEventCode', 'link-24');">ConsolidatedEventCode</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.LONG_CLICK" class="py-name" href="#" onclick="return doclink('link-38', 'LONG_CLICK', 'link-10');">LONG_CLICK</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">            <tt class="py-comment"># pull events until button is release (disallow turns while button is down)</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">            <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">            <tt class="py-keyword">while</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">code</tt> <tt class="py-op">!=</tt> <tt id="link-39" class="py-name"><a title="PowerMateEventHandler.BUTTON_PUSHED" class="py-name" href="#" onclick="return doclink('link-39', 'BUTTON_PUSHED', 'link-0');">BUTTON_PUSHED</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">            <tt class="py-comment"># TODO handle double</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-comment"># drop the null event</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">timeout</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__double_click_time</tt><tt class="py-op">)</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Empty</tt><tt class="py-op">:</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">event</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> <tt class="py-comment"># Single click</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode" class="py-name" href="#" onclick="return doclink('link-40', 'ConsolidatedEventCode', 'link-24');">ConsolidatedEventCode</a></tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.SINGLE_CLICK" class="py-name" href="#" onclick="return doclink('link-41', 'SINGLE_CLICK', 'link-7');">SINGLE_CLICK</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">code</tt> <tt class="py-op">==</tt> <tt id="link-42" class="py-name"><a title="PowerMateEventHandler.BUTTON_PUSHED" class="py-name" href="#" onclick="return doclink('link-42', 'BUTTON_PUSHED', 'link-0');">BUTTON_PUSHED</a></tt><tt class="py-op">:</tt> <tt class="py-comment"># Double click</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">put</tt><tt class="py-op">(</tt><tt id="link-43" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode" class="py-name" href="#" onclick="return doclink('link-43', 'ConsolidatedEventCode', 'link-24');">ConsolidatedEventCode</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="PowerMateEventHandler.ConsolidatedEventCode.DOUBLE_CLICK" class="py-name" href="#" onclick="return doclink('link-44', 'DOUBLE_CLICK', 'link-8');">DOUBLE_CLICK</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> <tt class="py-comment"># turn</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">                <tt class="py-comment"># This is just being dropped for now; as it generally shouldn't matter,</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">                <tt class="py-comment"># and handling the event could cause problems.</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">                <tt class="py-comment"># No peek funciton exists, so the event must be pulled off the queue.</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">                <tt class="py-comment"># It can be put back, but would go on the end of the queue, meaning</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">                <tt class="py-comment"># it could be put behind things with older timestamps. In the current</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">                <tt class="py-comment"># Implementation, this probably wouldn't matter much, but if uses of</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">                <tt class="py-comment"># get_time_in_ms are replaced with the actual time stamps, order of</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">                <tt class="py-comment"># events might matter.</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">                <tt class="py-comment">#</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">                <tt class="py-comment"># self.__raw_queue.put(event)</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">                <tt class="py-keyword">pass</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> </tt>
+</div><a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.set_led_brightness"></a><div id="PowerMateEventHandler.set_led_brightness-def"><a name="L248"></a><tt class="py-lineno">248</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.set_led_brightness-toggle" onclick="return toggle('PowerMateEventHandler.set_led_brightness');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#set_led_brightness">set_led_brightness</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">brightness</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.set_led_brightness-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.set_led_brightness-expanded"><a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line"><tt class="py-docstring">        Sets the led in the base to the specified brightness.</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"><tt class="py-docstring">        The valid range is 0-255, where 0 is off. Anything</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line"><tt class="py-docstring">        less than 0 will be treated as zero, anything greater</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"><tt class="py-docstring">        than 255 will be treated as 255.</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">brightness</tt> <tt class="py-op">&lt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">            <tt class="py-name">brightness</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">brightness</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">255</tt><tt class="py-op">:</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">            <tt class="py-name">brightness</tt> <tt class="py-op">=</tt> <tt class="py-number">255</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line"> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">        <tt class="py-comment">#r,w,x = select.select([], [self.__dev], [])</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">        <tt class="py-comment">#if w:</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__uinput</tt><tt class="py-op">.</tt><tt class="py-name">write</tt><tt class="py-op">(</tt><tt class="py-name">ecodes</tt><tt class="py-op">.</tt><tt class="py-name">EV_MSC</tt><tt class="py-op">,</tt> <tt class="py-name">ecodes</tt><tt class="py-op">.</tt><tt class="py-name">MSC_PULSELED</tt><tt class="py-op">,</tt> <tt class="py-name">brightness</tt><tt class="py-op">)</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__uinput</tt><tt class="py-op">.</tt><tt class="py-name">syn</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__led_brightness</tt> <tt class="py-op">=</tt> <tt class="py-name">brightness</tt> </tt>
+</div><a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line"> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.flash_led"></a><div id="PowerMateEventHandler.flash_led-def"><a name="L268"></a><tt class="py-lineno">268</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.flash_led-toggle" onclick="return toggle('PowerMateEventHandler.flash_led');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#flash_led">flash_led</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">num_flashes</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-param">brightness</tt><tt class="py-op">=</tt><tt id="link-45" class="py-name"><a title="PowerMateEventHandler.led_brightness" class="py-name" href="#" onclick="return doclink('link-45', 'led_brightness', 'link-5');">led_brightness</a></tt><tt class="py-op">,</tt> <tt class="py-param">duration</tt><tt class="py-op">=</tt><tt id="link-46" class="py-name"><a title="PowerMateEventHandler.flash_duration" class="py-name" href="#" onclick="return doclink('link-46', 'flash_duration', 'link-6');">flash_duration</a></tt><tt class="py-op">,</tt> <tt class="py-param">sleep</tt><tt class="py-op">=</tt><tt class="py-number">.15</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.flash_led-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.flash_led-expanded"><a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line"><tt class="py-docstring">        Convenience function to flash the led in the base. After the flashes, the brightness</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line"><tt class="py-docstring">        will be reset to whatever it was when this function was called.</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line"><tt class="py-docstring">        @param num_flashes: number times to flash</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line"><tt class="py-docstring">        @type  num_flashes: int</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"><tt class="py-docstring">        @param brightness: the brightness of the flashes (range defined by set_led_brightness)</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line"><tt class="py-docstring">        @type  brightness: int</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line"><tt class="py-docstring">        @param duration: length of each flash in seconds (decimals accepted)</tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line"><tt class="py-docstring">        @type  duration: double</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line"><tt class="py-docstring">        @param sleep: time between each flash in seconds (decimals accepted)</tt> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line"><tt class="py-docstring">        @type  sleep: double</tt> </tt>
+<a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line"> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">        <tt class="py-name">reset</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__led_brightness</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line"> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">i</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-name">num_flashes</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.set_led_brightness" class="py-name" href="#" onclick="return doclink('link-47', 'set_led_brightness', 'link-18');">set_led_brightness</a></tt><tt class="py-op">(</tt><tt class="py-name">brightness</tt><tt class="py-op">)</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">            <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">sleep</tt><tt class="py-op">(</tt><tt class="py-name">duration</tt><tt class="py-op">)</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.set_led_brightness" class="py-name" href="#" onclick="return doclink('link-48', 'set_led_brightness', 'link-18');">set_led_brightness</a></tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line">            <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">sleep</tt><tt class="py-op">(</tt><tt class="py-name">sleep</tt><tt class="py-op">)</tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line"> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__led_brightness</tt> <tt class="py-op">=</tt> <tt class="py-name">reset</tt> </tt>
+</div><a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line"> </tt>
+<a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.start"></a><div id="PowerMateEventHandler.start-def"><a name="L298"></a><tt class="py-lineno">298</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.start-toggle" onclick="return toggle('PowerMateEventHandler.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">raw_only</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.start-expanded"><a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line"><tt class="py-docstring">        Begin capturing/queueing events. Once this has been run,</tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line"><tt class="py-docstring">        get_next() can be used to start pulling events off the</tt> </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line"><tt class="py-docstring">        queue.</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line"> </tt>
+<a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line"> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line">        <tt class="py-name">raw</tt> <tt class="py-op">=</tt> <tt class="py-name">threading</tt><tt class="py-op">.</tt><tt class="py-name">Thread</tt><tt class="py-op">(</tt><tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.__raw()=PowerMateEventHandler.PowerMateEventHandler-class.html#__raw"><a title="PowerMateEventHandler.PowerMateEventHandler.__raw" class="py-name" href="#" onclick="return doclink('link-49', '__raw', 'link-49');">__raw</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line">        <tt class="py-name">raw</tt><tt class="py-op">.</tt><tt class="py-name">daemon</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">        <tt class="py-name">raw</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.start()=PowerMateEventHandler.PowerMateEventHandler-class.html#start"><a title="PowerMateEventHandler.PowerMateEventHandler.start" class="py-name" href="#" onclick="return doclink('link-50', 'start', 'link-50');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line"> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">        <tt class="py-name">cons</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">raw_only</tt><tt class="py-op">:</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">            <tt class="py-name">cons</tt> <tt class="py-op">=</tt> <tt class="py-name">threading</tt><tt class="py-op">.</tt><tt class="py-name">Thread</tt><tt class="py-op">(</tt><tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Method PowerMateEventHandler.PowerMateEventHandler.__consolidated()=PowerMateEventHandler.PowerMateEventHandler-class.html#__consolidated"><a title="PowerMateEventHandler.PowerMateEventHandler.__consolidated" class="py-name" href="#" onclick="return doclink('link-51', '__consolidated', 'link-51');">__consolidated</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">            <tt class="py-name">cons</tt><tt class="py-op">.</tt><tt class="py-name">daemon</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">            <tt class="py-name">cons</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="PowerMateEventHandler.PowerMateEventHandler.start" class="py-name" href="#" onclick="return doclink('link-52', 'start', 'link-50');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line"> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_thread</tt> <tt class="py-op">=</tt> <tt class="py-name">raw</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_thread</tt> <tt class="py-op">=</tt> <tt class="py-name">cons</tt> </tt>
+</div><a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line"> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.stop"></a><div id="PowerMateEventHandler.stop-def"><a name="L321"></a><tt class="py-lineno">321</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.stop-toggle" onclick="return toggle('PowerMateEventHandler.stop');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#stop">stop</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.stop-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.stop-expanded"><a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line"><tt class="py-docstring">        Stop the capture/queuing of events.</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line"> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt><tt class="py-op">:</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_thread</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_thread</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_thread</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line"> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.get_next"></a><div id="PowerMateEventHandler.get_next-def"><a name="L333"></a><tt class="py-lineno">333</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.get_next-toggle" onclick="return toggle('PowerMateEventHandler.get_next');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#get_next">get_next</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">block</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt class="py-param">timeout</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.get_next-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.get_next-expanded"><a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line"><tt class="py-docstring">        Pull the next consolidated event off the queue, and return it.</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line"><tt class="py-docstring">        @param block: block until next is available</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line"><tt class="py-docstring">        @type  block: bool</tt> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line"><tt class="py-docstring">        @param timeout: block for this long</tt> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line"><tt class="py-docstring">        @type  timeout: double</tt> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line"><tt class="py-docstring">        @note: block and timeout are passed directly to queue.get().</tt> </tt>
+<a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line"><tt class="py-docstring">               If block is TRUE, the thread will block for timeout seconds for</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line"><tt class="py-docstring">               the next event. If timeout is None, it will wait indefinitely.</tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line"><tt class="py-docstring">               If block is False, an event will be grabbed only if one is ready</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line"><tt class="py-docstring">               immediately.</tt> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line"><tt class="py-docstring">        @return: If start was run with rawOnly=True, an evdev.events.InputEvent;</tt> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line"><tt class="py-docstring">                 Otherwise, a ConsolidatedEventCode.</tt> </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line"><tt class="py-docstring">                 In either case, None if there is not an event ready and block</tt> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line"><tt class="py-docstring">                 is False, or timeout is reached.</tt> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line"><tt class="py-docstring">        @rtype: evdev.events.InputEvent, ConsolidatedEventCode, or None</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line"> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line">        <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__event_capture_running</tt><tt class="py-op">:</tt> </tt>
+<a name="L358"></a><tt class="py-lineno">358</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">Exception</tt><tt class="py-op">(</tt><tt class="py-string">"CaptureNotStarted"</tt><tt class="py-op">)</tt> </tt>
+<a name="L359"></a><tt class="py-lineno">359</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L360"></a><tt class="py-lineno">360</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_thread</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L361"></a><tt class="py-lineno">361</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__consolidated_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">block</tt><tt class="py-op">,</tt> <tt class="py-name">timeout</tt><tt class="py-op">)</tt> </tt>
+<a name="L362"></a><tt class="py-lineno">362</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L363"></a><tt class="py-lineno">363</tt>  <tt class="py-line">                <tt class="py-name">event</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__raw_queue</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">block</tt><tt class="py-op">,</tt> <tt class="py-name">timeout</tt><tt class="py-op">)</tt> </tt>
+<a name="L364"></a><tt class="py-lineno">364</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Queue</tt><tt class="py-op">.</tt><tt class="py-name">Empty</tt><tt class="py-op">:</tt> </tt>
+<a name="L365"></a><tt class="py-lineno">365</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
+<a name="L366"></a><tt class="py-lineno">366</tt>  <tt class="py-line"> </tt>
+<a name="L367"></a><tt class="py-lineno">367</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">event</tt> </tt>
+</div><a name="L368"></a><tt class="py-lineno">368</tt>  <tt class="py-line"> </tt>
+<a name="L369"></a><tt class="py-lineno">369</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.set_turn_delay"></a><div id="PowerMateEventHandler.set_turn_delay-def"><a name="L370"></a><tt class="py-lineno">370</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.set_turn_delay-toggle" onclick="return toggle('PowerMateEventHandler.set_turn_delay');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#set_turn_delay">set_turn_delay</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">delay</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.set_turn_delay-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.set_turn_delay-expanded"><a name="L371"></a><tt class="py-lineno">371</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L372"></a><tt class="py-lineno">372</tt>  <tt class="py-line"><tt class="py-docstring">        Set the delay between when consolidated events will be registered.</tt> </tt>
+<a name="L373"></a><tt class="py-lineno">373</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L374"></a><tt class="py-lineno">374</tt>  <tt class="py-line"><tt class="py-docstring">        In an effort to reduce spam from a failry sensative device, this variable</tt> </tt>
+<a name="L375"></a><tt class="py-lineno">375</tt>  <tt class="py-line"><tt class="py-docstring">        was created. If multiple turn events come in, the first will register</tt> </tt>
+<a name="L376"></a><tt class="py-lineno">376</tt>  <tt class="py-line"><tt class="py-docstring">        a consolidated event, and those that come in within the delay time will</tt> </tt>
+<a name="L377"></a><tt class="py-lineno">377</tt>  <tt class="py-line"><tt class="py-docstring">        be ignored. Once the delay threshold has been reached, another consolidated</tt> </tt>
+<a name="L378"></a><tt class="py-lineno">378</tt>  <tt class="py-line"><tt class="py-docstring">        event will be registered.</tt> </tt>
+<a name="L379"></a><tt class="py-lineno">379</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L380"></a><tt class="py-lineno">380</tt>  <tt class="py-line"><tt class="py-docstring">        @param delay: time in ms between turn events.</tt> </tt>
+<a name="L381"></a><tt class="py-lineno">381</tt>  <tt class="py-line"><tt class="py-docstring">        @type  delay: double</tt> </tt>
+<a name="L382"></a><tt class="py-lineno">382</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L383"></a><tt class="py-lineno">383</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L384"></a><tt class="py-lineno">384</tt>  <tt class="py-line"> </tt>
+<a name="L385"></a><tt class="py-lineno">385</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__turn_delay</tt> <tt class="py-op">=</tt> <tt class="py-name">delay</tt> </tt>
+</div><a name="L386"></a><tt class="py-lineno">386</tt>  <tt class="py-line"> </tt>
+<a name="L387"></a><tt class="py-lineno">387</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.set_read_delay"></a><div id="PowerMateEventHandler.set_read_delay-def"><a name="L388"></a><tt class="py-lineno">388</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.set_read_delay-toggle" onclick="return toggle('PowerMateEventHandler.set_read_delay');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#set_read_delay">set_read_delay</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">delay</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.set_read_delay-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.set_read_delay-expanded"><a name="L389"></a><tt class="py-lineno">389</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L390"></a><tt class="py-lineno">390</tt>  <tt class="py-line"><tt class="py-docstring">        This was intendted to allow the reading of events to be stoppable (i.e</tt> </tt>
+<a name="L391"></a><tt class="py-lineno">391</tt>  <tt class="py-line"><tt class="py-docstring">        to keep from blocking the thread indefinitely). It was made tunable to</tt> </tt>
+<a name="L392"></a><tt class="py-lineno">392</tt>  <tt class="py-line"><tt class="py-docstring">        allow good performance on fast CPUs, but not hog resources on slower</tt> </tt>
+<a name="L393"></a><tt class="py-lineno">393</tt>  <tt class="py-line"><tt class="py-docstring">        machines.</tt> </tt>
+<a name="L394"></a><tt class="py-lineno">394</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L395"></a><tt class="py-lineno">395</tt>  <tt class="py-line"><tt class="py-docstring">        Setting delay to None will cause the thread to block indefinitely. This</tt> </tt>
+<a name="L396"></a><tt class="py-lineno">396</tt>  <tt class="py-line"><tt class="py-docstring">        will probably yield the best performance, but means the thread will not</tt> </tt>
+<a name="L397"></a><tt class="py-lineno">397</tt>  <tt class="py-line"><tt class="py-docstring">        stop after a call to stop() until a new event is triggered.</tt> </tt>
+<a name="L398"></a><tt class="py-lineno">398</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L399"></a><tt class="py-lineno">399</tt>  <tt class="py-line"><tt class="py-docstring">        @param delay: Time in seconds to wait for the device to be readable. </tt> </tt>
+<a name="L400"></a><tt class="py-lineno">400</tt>  <tt class="py-line"><tt class="py-docstring">        @type  delay: double</tt> </tt>
+<a name="L401"></a><tt class="py-lineno">401</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L402"></a><tt class="py-lineno">402</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L403"></a><tt class="py-lineno">403</tt>  <tt class="py-line"> </tt>
+<a name="L404"></a><tt class="py-lineno">404</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__read_delay</tt> <tt class="py-op">=</tt> <tt class="py-name">delay</tt> </tt>
+</div><a name="L405"></a><tt class="py-lineno">405</tt>  <tt class="py-line"> </tt>
+<a name="L406"></a><tt class="py-lineno">406</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.set_double_click_time"></a><div id="PowerMateEventHandler.set_double_click_time-def"><a name="L407"></a><tt class="py-lineno">407</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.set_double_click_time-toggle" onclick="return toggle('PowerMateEventHandler.set_double_click_time');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#set_double_click_time">set_double_click_time</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">time</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.set_double_click_time-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.set_double_click_time-expanded"><a name="L408"></a><tt class="py-lineno">408</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L409"></a><tt class="py-lineno">409</tt>  <tt class="py-line"><tt class="py-docstring">        @param time: (in s) the button must be pressed again after a single press to register as a double</tt> </tt>
+<a name="L410"></a><tt class="py-lineno">410</tt>  <tt class="py-line"><tt class="py-docstring">        @type  time: double</tt> </tt>
+<a name="L411"></a><tt class="py-lineno">411</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L412"></a><tt class="py-lineno">412</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L413"></a><tt class="py-lineno">413</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__double_click_time</tt> <tt class="py-op">=</tt> <tt class="py-name">time</tt> </tt>
+</div><a name="L414"></a><tt class="py-lineno">414</tt>  <tt class="py-line"> </tt>
+<a name="L415"></a><tt class="py-lineno">415</tt>  <tt class="py-line"> </tt>
+<a name="PowerMateEventHandler.set_long_click_time"></a><div id="PowerMateEventHandler.set_long_click_time-def"><a name="L416"></a><tt class="py-lineno">416</tt> <a class="py-toggle" href="#" id="PowerMateEventHandler.set_long_click_time-toggle" onclick="return toggle('PowerMateEventHandler.set_long_click_time');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler.PowerMateEventHandler-class.html#set_long_click_time">set_long_click_time</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">time</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PowerMateEventHandler.set_long_click_time-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PowerMateEventHandler.set_long_click_time-expanded"><a name="L417"></a><tt class="py-lineno">417</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L418"></a><tt class="py-lineno">418</tt>  <tt class="py-line"><tt class="py-docstring">        @param time: (in s) the button must be held to register a long press</tt> </tt>
+<a name="L419"></a><tt class="py-lineno">419</tt>  <tt class="py-line"><tt class="py-docstring">        @type  time: double</tt> </tt>
+<a name="L420"></a><tt class="py-lineno">420</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L421"></a><tt class="py-lineno">421</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L422"></a><tt class="py-lineno">422</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__long_click_time</tt> <tt class="py-op">=</tt> <tt class="py-name">time</tt> </tt>
+</div></div><a name="L423"></a><tt class="py-lineno">423</tt>  <tt class="py-line"> </tt>
+<a name="L424"></a><tt class="py-lineno">424</tt>  <tt class="py-line"> </tt>
+<a name="find_device"></a><div id="find_device-def"><a name="L425"></a><tt class="py-lineno">425</tt> <a class="py-toggle" href="#" id="find_device-toggle" onclick="return toggle('find_device');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler-module.html#find_device">find_device</a><tt class="py-op">(</tt><tt class="py-param">dev_dir</tt><tt class="py-op">=</tt><tt class="py-string">'/dev/input/'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="find_device-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="find_device-expanded"><a name="L426"></a><tt class="py-lineno">426</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L427"></a><tt class="py-lineno">427</tt>  <tt class="py-line"><tt class="py-docstring">    Finds and returns the device in dev_dir</tt> </tt>
+<a name="L428"></a><tt class="py-lineno">428</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L429"></a><tt class="py-lineno">429</tt>  <tt class="py-line"><tt class="py-docstring">    If the user does not have permission to access a device in dev_dir, an OSError</tt> </tt>
+<a name="L430"></a><tt class="py-lineno">430</tt>  <tt class="py-line"><tt class="py-docstring">    Exception will be raised.</tt> </tt>
+<a name="L431"></a><tt class="py-lineno">431</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L432"></a><tt class="py-lineno">432</tt>  <tt class="py-line"><tt class="py-docstring">    OSErrors are printed to stderr. These will likely happen if the user</tt> </tt>
+<a name="L433"></a><tt class="py-lineno">433</tt>  <tt class="py-line"><tt class="py-docstring">    does not have permission to all devices. If the function retrns None</tt> </tt>
+<a name="L434"></a><tt class="py-lineno">434</tt>  <tt class="py-line"><tt class="py-docstring">    with the device plugged in, check the permissions on the device.</tt> </tt>
+<a name="L435"></a><tt class="py-lineno">435</tt>  <tt class="py-line"><tt class="py-docstring">    (There's probably a better way to do this - check the devices before</tt> </tt>
+<a name="L436"></a><tt class="py-lineno">436</tt>  <tt class="py-line"><tt class="py-docstring">    attempting to open them - but that will have to wait for the moment.)</tt> </tt>
+<a name="L437"></a><tt class="py-lineno">437</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L438"></a><tt class="py-lineno">438</tt>  <tt class="py-line"><tt class="py-docstring">    @return: An evdev.InputDevice. None if the device is not found.</tt> </tt>
+<a name="L439"></a><tt class="py-lineno">439</tt>  <tt class="py-line"><tt class="py-docstring">    @rtype:  evdev.InputDevice or None</tt> </tt>
+<a name="L440"></a><tt class="py-lineno">440</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L441"></a><tt class="py-lineno">441</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-string">"/dev/GriffinPowermate"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L442"></a><tt class="py-lineno">442</tt>  <tt class="py-line">        <tt class="py-name">device</tt> <tt class="py-op">=</tt> <tt class="py-name">InputDevice</tt><tt class="py-op">(</tt><tt class="py-string">"/dev/GriffinPowermate"</tt><tt class="py-op">)</tt> </tt>
+<a name="L443"></a><tt class="py-lineno">443</tt>  <tt class="py-line"> </tt>
+<a name="L444"></a><tt class="py-lineno">444</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L445"></a><tt class="py-lineno">445</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">dev_dir</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">2</tt><tt class="py-op">]</tt> <tt class="py-op">!=</tt> <tt class="py-string">'/'</tt><tt class="py-op">:</tt> </tt>
+<a name="L446"></a><tt class="py-lineno">446</tt>  <tt class="py-line">            <tt class="py-name">dev_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">dev_dir</tt> <tt class="py-op">+</tt> <tt class="py-string">'/'</tt> </tt>
+<a name="L447"></a><tt class="py-lineno">447</tt>  <tt class="py-line">        <tt class="py-name">device</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L448"></a><tt class="py-lineno">448</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">dev</tt> <tt class="py-keyword">in</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">listdir</tt><tt class="py-op">(</tt><tt class="py-name">dev_dir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L449"></a><tt class="py-lineno">449</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">dev</tt><tt class="py-op">.</tt><tt class="py-name">find</tt><tt class="py-op">(</tt><tt class="py-string">"event"</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L450"></a><tt class="py-lineno">450</tt>  <tt class="py-line">                <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L451"></a><tt class="py-lineno">451</tt>  <tt class="py-line">                    <tt class="py-name">dev</tt> <tt class="py-op">=</tt> <tt class="py-name">InputDevice</tt><tt class="py-op">(</tt><tt class="py-name">dev_dir</tt> <tt class="py-op">+</tt> <tt class="py-name">dev</tt><tt class="py-op">)</tt> </tt>
+<a name="L452"></a><tt class="py-lineno">452</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">dev</tt><tt class="py-op">.</tt><tt class="py-name">name</tt><tt class="py-op">.</tt><tt class="py-name">find</tt><tt class="py-op">(</tt><tt class="py-string">'Griffin PowerMate'</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L453"></a><tt class="py-lineno">453</tt>  <tt class="py-line">                        <tt class="py-name">device</tt> <tt class="py-op">=</tt> <tt class="py-name">dev</tt> </tt>
+<a name="L454"></a><tt class="py-lineno">454</tt>  <tt class="py-line">                        <tt class="py-keyword">break</tt> </tt>
+<a name="L455"></a><tt class="py-lineno">455</tt>  <tt class="py-line">                <tt class="py-keyword">except</tt> <tt class="py-name">OSError</tt><tt class="py-op">:</tt> </tt>
+<a name="L456"></a><tt class="py-lineno">456</tt>  <tt class="py-line">                    <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">OSError</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">" You do not have permissions to use this device: "</tt> <tt class="py-op">+</tt> <tt class="py-name">dev_dir</tt> <tt class="py-op">+</tt> <tt class="py-name">dev</tt> <tt class="py-op">+</tt> <tt class="py-string">"."</tt><tt class="py-op">,</tt> <tt class="py-name">file</tt><tt class="py-op">=</tt><tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">)</tt>  </tt>
+<a name="L457"></a><tt class="py-lineno">457</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">device</tt> </tt>
+</div><a name="L458"></a><tt class="py-lineno">458</tt>  <tt class="py-line"> </tt>
+<a name="L459"></a><tt class="py-lineno">459</tt>  <tt class="py-line"> </tt>
+<a name="event_time_in_ms"></a><div id="event_time_in_ms-def"><a name="L460"></a><tt class="py-lineno">460</tt> <a class="py-toggle" href="#" id="event_time_in_ms-toggle" onclick="return toggle('event_time_in_ms');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler-module.html#event_time_in_ms">event_time_in_ms</a><tt class="py-op">(</tt><tt class="py-param">event</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="event_time_in_ms-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="event_time_in_ms-expanded"><a name="L461"></a><tt class="py-lineno">461</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L462"></a><tt class="py-lineno">462</tt>  <tt class="py-line"><tt class="py-docstring">    @param event: the event to get the time for</tt> </tt>
+<a name="L463"></a><tt class="py-lineno">463</tt>  <tt class="py-line"><tt class="py-docstring">    @type  event: evdev.InputEvent</tt> </tt>
+<a name="L464"></a><tt class="py-lineno">464</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L465"></a><tt class="py-lineno">465</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L466"></a><tt class="py-lineno">466</tt>  <tt class="py-line"><tt class="py-docstring">    @return: The time in ms the event occurred (as an int)</tt> </tt>
+<a name="L467"></a><tt class="py-lineno">467</tt>  <tt class="py-line"><tt class="py-docstring">    @rtype:  int</tt> </tt>
+<a name="L468"></a><tt class="py-lineno">468</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L469"></a><tt class="py-lineno">469</tt>  <tt class="py-line"><tt class="py-docstring">    @note: Does this by converting the event microseconds (event.usec) to</tt> </tt>
+<a name="L470"></a><tt class="py-lineno">470</tt>  <tt class="py-line"><tt class="py-docstring">    seconds (multiply by 1000000), adding the event seconds (event.sec),</tt> </tt>
+<a name="L471"></a><tt class="py-lineno">471</tt>  <tt class="py-line"><tt class="py-docstring">    converting to ms (multiply by 1000), then casting to an int.</tt> </tt>
+<a name="L472"></a><tt class="py-lineno">472</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L473"></a><tt class="py-lineno">473</tt>  <tt class="py-line"> </tt>
+<a name="L474"></a><tt class="py-lineno">474</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">usec</tt> <tt class="py-op">/</tt> <tt class="py-number">1000000.0</tt> <tt class="py-op">+</tt> <tt class="py-name">event</tt><tt class="py-op">.</tt><tt class="py-name">sec</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-number">1000</tt><tt class="py-op">)</tt>  </tt>
+</div><a name="L475"></a><tt class="py-lineno">475</tt>  <tt class="py-line"> </tt>
+<a name="L476"></a><tt class="py-lineno">476</tt>  <tt class="py-line"> </tt>
+<a name="get_uinput"></a><div id="get_uinput-def"><a name="L477"></a><tt class="py-lineno">477</tt> <a class="py-toggle" href="#" id="get_uinput-toggle" onclick="return toggle('get_uinput');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="PowerMateEventHandler-module.html#get_uinput">get_uinput</a><tt class="py-op">(</tt><tt class="py-param">dev</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_uinput-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_uinput-expanded"><a name="L478"></a><tt class="py-lineno">478</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L479"></a><tt class="py-lineno">479</tt>  <tt class="py-line"><tt class="py-docstring">    @param dev: An evdev.InputDevice for the PowerMate (see find_device)</tt> </tt>
+<a name="L480"></a><tt class="py-lineno">480</tt>  <tt class="py-line"><tt class="py-docstring">    @type  dev: evdev.InputDevice:</tt> </tt>
+<a name="L481"></a><tt class="py-lineno">481</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L482"></a><tt class="py-lineno">482</tt>  <tt class="py-line"><tt class="py-docstring">    @return: An evdev.UInput for the device. This can be used to write to the</tt> </tt>
+<a name="L483"></a><tt class="py-lineno">483</tt>  <tt class="py-line"><tt class="py-docstring">             device (to change the led brightness).</tt> </tt>
+<a name="L484"></a><tt class="py-lineno">484</tt>  <tt class="py-line"><tt class="py-docstring">    @rtype:  evdev.UInput</tt> </tt>
+<a name="L485"></a><tt class="py-lineno">485</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L486"></a><tt class="py-lineno">486</tt>  <tt class="py-line">    <tt class="py-name">uinput</tt> <tt class="py-op">=</tt> <tt class="py-name">UInput</tt><tt class="py-op">(</tt><tt class="py-name">name</tt><tt class="py-op">=</tt><tt class="py-string">"GriffinPowerMateWriter"</tt><tt class="py-op">,</tt> <tt class="py-name">events</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-name">ecodes</tt><tt class="py-op">.</tt><tt class="py-name">EV_MSC</tt><tt class="py-op">:</tt><tt class="py-op">[</tt><tt class="py-name">ecodes</tt><tt class="py-op">.</tt><tt class="py-name">MSC_PULSELED</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L487"></a><tt class="py-lineno">487</tt>  <tt class="py-line">    <tt class="py-name">uinput</tt><tt class="py-op">.</tt><tt class="py-name">device</tt> <tt class="py-op">=</tt> <tt class="py-name">dev</tt> </tt>
+<a name="L488"></a><tt class="py-lineno">488</tt>  <tt class="py-line">    <tt class="py-name">uinput</tt><tt class="py-op">.</tt><tt class="py-name">fd</tt> <tt class="py-op">=</tt> <tt class="py-name">dev</tt><tt class="py-op">.</tt><tt class="py-name">fd</tt> </tt>
+<a name="L489"></a><tt class="py-lineno">489</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">uinput</tt> </tt>
+</div><a name="L490"></a><tt class="py-lineno">490</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Mar  8 20:57:13 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
