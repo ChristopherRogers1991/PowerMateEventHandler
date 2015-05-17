@@ -103,6 +103,8 @@ class PowerMateEventHandler:
         self.__long_press_time = long_press_time
         self.__double_click_time = double_click_time
 
+        self.__time_of_last_turn = 0
+
 
     def __get_time_in_ms(self):
         '''
@@ -149,7 +151,6 @@ class PowerMateEventHandler:
         and placing them on the consolidated queue
         '''
 
-        time_of_last_turn = 0
 
         while True:
 
@@ -165,17 +166,29 @@ class PowerMateEventHandler:
                 continue
 
 
-            if event.code == KNOB_TURNED and self.__get_time_in_ms() - self.__turn_delay > time_of_last_turn:
-                if event.value > 0:
-                    self.__consolidated_queue.put(ConsolidatedEventCode.RIGHT_TURN)
-                else:
-                    self.__consolidated_queue.put(ConsolidatedEventCode.LEFT_TURN)
-                time_of_last_turn = self.__get_time_in_ms()
-
+            if event.code == KNOB_TURNED:
+                self.__knob_turned(event)
             elif event.code == BUTTON_PUSHED:
                 if event.value == POSITIVE: # button pressed
                     self.__button_press(self.__get_time_in_ms())
 
+
+    def __knob_turned(self, event):
+        '''
+        Helper function for __consolidated and __button_press.
+
+        Queus a turn event if __turn_delay time has passed
+        since self.__time_of_last_turn.
+
+        @param event: The turn event
+        @type  event: evdev.InputEvent
+        '''
+        if event_time_in_ms(event) - self.__turn_delay > self.__time_of_last_turn:
+          if event.value > 0:
+              self.__consolidated_queue.put(ConsolidatedEventCode.RIGHT_TURN)
+          else:
+              self.__consolidated_queue.put(ConsolidatedEventCode.LEFT_TURN)
+          self.__time_of_last_turn = self.__get_time_in_ms()
 
     def __button_press(self, time_pressed):
         '''
@@ -230,17 +243,7 @@ class PowerMateEventHandler:
                 self.__consolidated_queue.put(ConsolidatedEventCode.DOUBLE_CLICK)
 
             else: # turn
-                # This is just being dropped for now; as it generally shouldn't matter,
-                # and handling the event could cause problems.
-                # No peek funciton exists, so the event must be pulled off the queue.
-                # It can be put back, but would go on the end of the queue, meaning
-                # it could be put behind things with older timestamps. In the current
-                # Implementation, this probably wouldn't matter much, but if uses of
-                # get_time_in_ms are replaced with the actual time stamps, order of
-                # events might matter.
-                #
-                # self.__raw_queue.put(event)
-                pass
+                self.__knob_turned(event)
 
         return
 
