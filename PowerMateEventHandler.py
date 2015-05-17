@@ -187,7 +187,7 @@ class PowerMateEventHandler:
               self.__consolidated_queue.put(ConsolidatedEventCode.RIGHT_TURN)
           else:
               self.__consolidated_queue.put(ConsolidatedEventCode.LEFT_TURN)
-          self.__time_of_last_turn = self.__get_time_in_ms()
+          self.__time_of_last_turn = event_time_in_ms(event)
 
     def __button_press(self, time_pressed):
         '''
