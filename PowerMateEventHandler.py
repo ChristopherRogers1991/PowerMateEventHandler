@@ -117,7 +117,6 @@ class PowerMateEventHandler:
         '''
         Begin raw capture of events, and add them to
         the raw queue.
-
         '''
 
         while True:
@@ -133,7 +132,7 @@ class PowerMateEventHandler:
                     if not event == None:
                         self.__raw_queue.put(event)
             except IOError:
-                # If the device get's disconnected, wait for it to come back
+                # If the device gets disconnected, wait for it to come back
                 while True:
                     time.sleep(.5)
                     self.__dev = find_device()
