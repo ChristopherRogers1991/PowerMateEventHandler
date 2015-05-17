@@ -48,15 +48,35 @@ class PowerMateEventHandler:
         If the device is not found (can happen if the device is not plugged in, or the user does not have permissions to it) a
         DeviceNotFound Exception will be raised.
 
-        PARAM brightness = The inital brightness of the led in the base.
-        PARAM read_delay = Timeout when waiting for the device to be readable.
+        @param brightness: The inital brightness of the led in the base.
+        @type  brightness: int
+
+        @param read_delay: Timeout when waiting for the device to be readable.
             Having a time out allows the threads to be joinable without waiting
             for another event. None (default) means to wait indefinitely for the device
-            to be readable.
-        PARAM turn_delay = Time in ms between consolidated turns.
-        PARAM long_press_time = time (in s) the button must be held to register a long press
-        PARAM double_click_time = time (in s) the button must be pressed again after a single press to register as a double
-        PARAM dev_dir = The directory in which to look for the device.
+            to be readable. This will probably yield the best performance, but means the
+            thread will not stop after a call to stop() until a new event is triggered.
+
+            Having this configurable  was intendted to allow the reading of events to
+            be stoppable (i.e to keep from blocking the thread indefinitely). It was
+            made tunable to allow good performance on fast CPUs, but not hog resources
+            on slower machines.
+
+            Setting delay to None will cause the thread to block indefinitely.
+        @type  read_delay: double
+
+        @param turn_delay: Time in ms between consolidated turns.
+        @type  turn_delay: double
+
+        @param long_press_time: time (in s) the button must be held to register a long press
+        @type  long_press_time: double
+
+        @param double_click_time: time (in s) the button must be pressed again after a single press to register as a double
+        @type  double_click_time: double
+
+        @param dev_dir: The directory in which to look for the device.
+        @type  dev_dir: str
+
         '''
 
         dev = find_device(dev_dir)
@@ -75,7 +95,7 @@ class PowerMateEventHandler:
         self.__uinput = get_uinput(dev)
 
         self.set_led_brightness(brightness)
-        
+
         self.__event_capture_running = False
         self.__turn_delay = turn_delay
         self.__read_delay = read_delay
@@ -86,7 +106,8 @@ class PowerMateEventHandler:
 
     def __get_time_in_ms(self):
         '''
-        return the currnt time in ms
+        @return: The currnt time in ms
+        @rtype:  int
         '''
 
         return int(round(time.time() * 1000))
@@ -126,22 +147,12 @@ class PowerMateEventHandler:
         '''
         Begin consolidating events from the raw queue,
         and placing them on the consolidated queue
-
-        PARAM delay = Time seconds to wait for events to be on the raw queue.
-            This was intendted to allow the reading of events to be stoppable (i.e
-            to keep from blocking the thread indefinitely). It was made tunable to
-            allow good performance on fast CPUs, but not hog resources on slower
-            machines.
-
-            Setting delay to None will cause the thread to block indefinitely. This
-            will probably yield the best performance, but means the thread will not
-            stop after a call to stop() until a new event is triggered.
         '''
 
         time_of_last_turn = 0
 
         while True:
-            
+
             if not self.__event_capture_running:
                 return
 
@@ -152,7 +163,7 @@ class PowerMateEventHandler:
                 event = self.__raw_queue.get(timeout=self.__read_delay)
             except Queue.Empty:
                 continue
-            
+
 
             if event.code == KNOB_TURNED and self.__get_time_in_ms() - self.__turn_delay > time_of_last_turn:
                 if event.value > 0:
@@ -173,8 +184,10 @@ class PowerMateEventHandler:
         Handle a button press event (i.e. consolidtate raw events into
         a single, double, or long click event)
 
-        PARAM time_pressed = the time the button was first pressed.
-        TODO = remove thie parameter, and uses of get_time_in_ms that are
+        @param time_pressed: the time the button was first pressed.
+        @type  time_pressed: double
+
+        @todo x.x: remove thie parameter, and uses of get_time_in_ms that are
         unnecessary. The time can be gotten directly from the event.
         '''
 
@@ -230,7 +243,7 @@ class PowerMateEventHandler:
                 pass
 
         return
-    
+
 
     def set_led_brightness(self, brightness):
         '''
@@ -250,17 +263,25 @@ class PowerMateEventHandler:
         self.__uinput.write(ecodes.EV_MSC, ecodes.MSC_PULSELED, brightness)
         self.__uinput.syn()
         self.__led_brightness = brightness
-        
+
 
     def flash_led(self, num_flashes=2, brightness=led_brightness, duration=flash_duration, sleep=.15):
         '''
         Convenience function to flash the led in the base. After the flashes, the brightness
         will be reset to whatever it was when this function was called.
 
-        PARAM num_flashes = number times to flash
-        PARAM brightness = the brightness of the flashes (range defined by set_led_brightness)
-        PARAM flash_duration = length of each flash in seconds (decimals accepted)
-        PARAM sleep = time between each flash in seconds (decimals accepted)
+        @param num_flashes: number times to flash
+        @type  num_flashes: int
+
+        @param brightness: the brightness of the flashes (range defined by set_led_brightness)
+        @type  brightness: int
+
+        @param duration: length of each flash in seconds (decimals accepted)
+        @type  duration: double
+
+        @param sleep: time between each flash in seconds (decimals accepted)
+        @type  sleep: double
+
         '''
 
         reset = self.__led_brightness
@@ -272,7 +293,6 @@ class PowerMateEventHandler:
             time.sleep(sleep)
 
         self.__led_brightness = reset
-
 
 
     def start(self, raw_only=False):
@@ -307,29 +327,30 @@ class PowerMateEventHandler:
             self.__event_capture_running = False
             if self.__consolidated_thread != None:
                 self.__consolidated_thread.join()
-            #print("c joined")
             self.__raw_thread.join()
-            #print("raw joined")
 
 
     def get_next(self, block=True, timeout=None):
         '''
         Pull the next consolidated event off the queue, and return it.
 
-        PARAM block
-        PARAM timeout
+        @param block: block until next is available
+        @type  block: bool
 
-        block and timeout are passed directly to queue.get().
-        If block is TRUE, the thread will block for timeout seconds for
-        the next event. If timeout is None, it will wait indefinitely.
-        If block is False, an event will be grabbed only if one is ready
-        immediately.
+        @param timeout: block for this long
+        @type  timeout: double
 
-        RETURN:
-            If start was run with rawOnly=True, an evdev.events.InputEvent;
-            Otherwise, a ConsolidatedEventCode.
-            In either case, None if there is not an event ready and block
-            is False, or timeout is reached.
+        @note: block and timeout are passed directly to queue.get().
+               If block is TRUE, the thread will block for timeout seconds for
+               the next event. If timeout is None, it will wait indefinitely.
+               If block is False, an event will be grabbed only if one is ready
+               immediately.
+
+        @return: If start was run with rawOnly=True, an evdev.events.InputEvent;
+                 Otherwise, a ConsolidatedEventCode.
+                 In either case, None if there is not an event ready and block
+                 is False, or timeout is reached.
+        @rtype: evdev.events.InputEvent, ConsolidatedEventCode, or None
         '''
 
         event = None
@@ -356,7 +377,9 @@ class PowerMateEventHandler:
         be ignored. Once the delay threshold has been reached, another consolidated
         event will be registered.
 
-        PARAM delay = time in ms between turn events.
+        @param delay: time in ms between turn events.
+        @type  delay: double
+
         '''
 
         self.__turn_delay = delay
@@ -373,7 +396,9 @@ class PowerMateEventHandler:
         will probably yield the best performance, but means the thread will not
         stop after a call to stop() until a new event is triggered.
 
-        PARAM delay = Time in seconds to wait for the device to be readable. 
+        @param delay: Time in seconds to wait for the device to be readable. 
+        @type  delay: double
+
         '''
 
         self.__read_delay = delay
@@ -381,14 +406,18 @@ class PowerMateEventHandler:
 
     def set_double_click_time(self, time):
         '''
-        PARAM time (in s) the button must be pressed again after a single press to register as a double
+        @param time: (in s) the button must be pressed again after a single press to register as a double
+        @type  time: double
+
         '''
         self.__double_click_time = time
 
 
     def set_long_click_time(self, time):
         '''
-        PARAM time (in s) the button must be held to register a long press
+        @param time: (in s) the button must be held to register a long press
+        @type  time: double
+
         '''
         self.__long_click_time = time
 
@@ -406,8 +435,8 @@ def find_device(dev_dir='/dev/input/'):
     (There's probably a better way to do this - check the devices before
     attempting to open them - but that will have to wait for the moment.)
 
-    RETURN dev = An evdev.InputDevice. None if the device
-    is not found.
+    @return: An evdev.InputDevice. None if the device is not found.
+    @rtype:  evdev.InputDevice or None
     '''
     if os.path.exists("/dev/GriffinPowermate"):
         device = InputDevice("/dev/GriffinPowermate")
@@ -430,11 +459,14 @@ def find_device(dev_dir='/dev/input/'):
 
 def event_time_in_ms(event):
     '''
-    PARAM InputEvent event
+    @param event: the event to get the time for
+    @type  event: evdev.InputEvent
 
-    RETURN The time in ms the event occurred (as an int)
 
-    Does this by converting the event microseconds (event.usec) to
+    @return: The time in ms the event occurred (as an int)
+    @rtype:  int
+
+    @note: Does this by converting the event microseconds (event.usec) to
     seconds (multiply by 1000000), adding the event seconds (event.sec),
     converting to ms (multiply by 1000), then casting to an int.
     '''
@@ -444,10 +476,12 @@ def event_time_in_ms(event):
 
 def get_uinput(dev):
     '''
-    PARAM dev - An evdev.InputDevice for the PowerMate (see find_device)
+    @param dev: An evdev.InputDevice for the PowerMate (see find_device)
+    @type  dev: evdev.InputDevice:
 
-    RETURN - An evdev.UInput for the device. This can be used to write to the
+    @return: An evdev.UInput for the device. This can be used to write to the
              device (to change the led brightness).
+    @rtype:  evdev.UInput
     '''
     uinput = UInput(name="GriffinPowerMateWriter", events={ecodes.EV_MSC:[ecodes.MSC_PULSELED]})
     uinput.device = dev
