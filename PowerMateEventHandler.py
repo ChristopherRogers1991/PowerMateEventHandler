@@ -216,7 +216,6 @@ class PowerMateEventHandler:
                 event = self.__raw_queue.get()
 
         else:
-            # TODO handle double
             try:
                 self.__raw_queue.get() # drop the null event
                 event = self.__raw_queue.get(timeout=self.__double_click_time)
@@ -230,7 +229,7 @@ class PowerMateEventHandler:
                 self.__consolidated_queue.put(ConsolidatedEventCode.DOUBLE_CLICK)
 
             else: # turn
-                # This is just being dropped for now; as it generally shouldn't matter,
+                # This is just being dropped for now, as it generally shouldn't matter,
                 # and handling the event could cause problems.
                 # No peek funciton exists, so the event must be pulled off the queue.
                 # It can be put back, but would go on the end of the queue, meaning
