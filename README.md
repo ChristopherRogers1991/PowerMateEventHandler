@@ -24,7 +24,7 @@ off.
 >>> while True:
 ...     next = p.get_next(block=False, timeout=1)
 ...     if next != None:
-...         print nextConsolidatedEventCode.LEFT_TURN
+...         print next
 ...
 ConsolidatedEventCode.SINGLE_CLICK
 ConsolidatedEventCode.RIGHT_TURN
