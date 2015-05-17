@@ -135,7 +135,7 @@ class PowerMateEventHandler:
                     if not event == None:
                         self.__raw_queue.put(event)
             except IOError:
-                # If the device get's disconnected, wait for it to come back
+                # If the device gets disconnected, wait for it to come back
                 while True:
                     time.sleep(.5)
                     self.__dev = find_device()
@@ -150,7 +150,6 @@ class PowerMateEventHandler:
         Begin consolidating events from the raw queue,
         and placing them on the consolidated queue
         '''
-
 
         while True:
 
@@ -200,8 +199,8 @@ class PowerMateEventHandler:
         @param time_pressed: the time the button was first pressed.
         @type  time_pressed: double
 
-        @todo x.x: remove thie parameter, and uses of get_time_in_ms that are
-        unnecessary. The time can be gotten directly from the event.
+        @todo x.x: remove the parameter, and uses of get_time_in_ms that are
+        unnecessary. The time can be retrieved directly from the event.
         '''
 
         x = self.__long_press_time
