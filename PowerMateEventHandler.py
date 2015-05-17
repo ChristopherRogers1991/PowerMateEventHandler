@@ -187,8 +187,8 @@ class PowerMateEventHandler:
         @param time_pressed: the time the button was first pressed.
         @type  time_pressed: double
 
-        @todo x.x: remove thie parameter, and uses of get_time_in_ms that are
-        unnecessary. The time can be gotten directly from the event.
+        @todo x.x: remove the parameter, and uses of get_time_in_ms that are
+        unnecessary. The time can be retrieved directly from the event.
         '''
 
         x = self.__long_press_time
