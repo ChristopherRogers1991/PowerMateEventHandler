@@ -1,13 +1,14 @@
 # requires python-evdev, python-requests
 from __future__ import print_function
-from evdev import InputDevice, ecodes, UInput
-import select
 from enum import Enum
+from evdev import InputDevice
+from evdev import UInput
+from evdev import ecodes
 import Queue
 import os
-import time
+import select
 import threading
-import sys
+import time
 
 
 # Constants
@@ -21,6 +22,10 @@ NEGATIVE = -1 # button up, or knob counter-clockwise
 time_down = 0 # time at which the button was last pressed down
 led_brightness = 100
 flash_duration = .15
+
+
+class InvalidDeviceException(Exception):
+    pass
 
 
 class ConsolidatedEventCode(Enum):
@@ -40,7 +45,7 @@ class ConsolidatedEventCode(Enum):
 
 class PowerMateEventHandler:
 
-    def __init__(self, brightness=255, read_delay=None, turn_delay=0, long_press_time=.5, double_click_time=.3, dev_dir='/dev/input/'):
+    def __init__(self, brightness=255, read_delay=None, turn_delay=0, long_press_time=.5, double_click_time=.3, path='/dev/input/'):
         '''
         Find the PowerMateDevice, and get set up to
         start reading from it and writing to it.
@@ -74,12 +79,12 @@ class PowerMateEventHandler:
         @param double_click_time: time (in s) the button must be pressed again after a single press to register as a double
         @type  double_click_time: double
 
-        @param dev_dir: The directory in which to look for the device.
-        @type  dev_dir: str
+        @param path: The path to the device, or the directory in which to look for the device.
+        @type  path: str
 
         '''
 
-        dev = find_device(dev_dir)
+        dev = find_device(path)
 
         if dev is None:
             raise Exception("DeviceNotFound")
@@ -424,38 +429,46 @@ class PowerMateEventHandler:
         self.__long_click_time = time
 
 
-def find_device(dev_dir='/dev/input/'):
+def find_device(path='/dev/input/'):
     '''
-    Finds and returns the device in dev_dir
+    Finds and returns the device at path.
 
-    If the user does not have permission to access a device in dev_dir, an OSError
-    Exception will be raised.
+    If 'path' is a direcotry, the directory will be searched,
+    and the first powermate will be returned. If the user does
+    not have permissions to read from the device, it will
+    not be found, and None will be returned.
 
-    OSErrors are printed to stderr. These will likely happen if the user
-    does not have permission to all devices. If the function retrns None
-    with the device plugged in, check the permissions on the device.
-    (There's probably a better way to do this - check the devices before
-    attempting to open them - but that will have to wait for the moment.)
+    If 'path' is a file (i.e. a complete path to a powermate), that
+    powermate will be returned. If it is not a powermate, an
+    exception will be raised.
+
+    @param path: path to the device, or the directory containing the device.
+    @type path: str
+
+    @raises InvalidDeviceException: If the device at 'path' is not
+    a Powermate.
 
     @return: An evdev.InputDevice. None if the device is not found.
     @rtype:  evdev.InputDevice or None
     '''
-    if os.path.exists("/dev/GriffinPowermate"):
-        device = InputDevice("/dev/GriffinPowermate")
+
+    device = None
+
+    if os.path.isdir(path):
+        for dev in os.listdir(path):
+            dev_path = os.path.join(path, dev)
+            if os.access(dev_path, os.R_OK):
+                dev = InputDevice(dev_path)
+                if 'Griffin PowerMate' in dev.name:
+                    device = dev
+                    break
 
     else:
-        if dev_dir[-2] != '/':
-            dev_dir = dev_dir + '/'
-        device = None
-        for dev in os.listdir(dev_dir):
-            if dev.find("event") == 0:
-                try:
-                    dev = InputDevice(dev_dir + dev)
-                    if dev.name.find('Griffin PowerMate') >= 0:
-                        device = dev
-                        break
-                except OSError:
-                    print(str(OSError) + " You do not have permissions to use this device: " + dev_dir + dev + ".", file=sys.stderr) 
+        device = InputDevice(path)
+        name = device.name
+        if not 'Griffin PowerMate' in name:
+            raise InvalidDeviceException("'{dev}' is not a PowerMate! Device name is '{name}'.".format(dev=path, name=name))
+
     return device
 
 
