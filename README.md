@@ -21,6 +21,7 @@ off.
 >>> import PowerMateEventHandler as pmeh
 >>> p = pmeh.PowerMateEventHandler()
 >>> p.set_led_brightness(0)
+>>> p.start()
 >>> while True:
 ...     next = p.get_next(block=False, timeout=1)
 ...     if next != None:
